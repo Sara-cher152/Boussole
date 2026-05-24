@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Uboussole — Portail Euromed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Montserrat',sans-serif;}
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:#D8DDE8;border-radius:3px;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useEffect } = React;
+
+// ─── Brand Colors ─────────────────────────────────────────────────────────────
+const C = {
+  navy:"#1B3A6B", navyDark:"#122a52", navyLight:"#2a4f8f",
+  green:"#4CAF50", greenDark:"#388E3C", greenLight:"#66BB6A",
+  white:"#FFFFFF", offWhite:"#F5F7FA", gray100:"#EEF1F6",
+  gray200:"#D8DDE8", gray400:"#8A96A8", gray600:"#4A5568", text:"#1B2A44",
+  amber:"#F59E0B", red:"#EF4444", purple:"#8B5CF6", teal:"#0D9488",
+  orange:"#EA580C",
+};
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+const LOGO_URL = "data:image/png;base64,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";
+
+function LogoMark({ size=48 }) {
+  return (
+    <div style={{background:"white",borderRadius:8,padding:2,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
+      <img src={LOGO_URL} alt="Uboussole" style={{height:size,width:"auto",objectFit:"contain",display:"block"}}/>
+    </div>
+  );
+}
+function LogoFull({ size="lg" }) {
+  const h = size==="lg"?90:76;
+  return (
+    <div style={{background:"white",borderRadius:8,padding:"4px 8px",display:"inline-flex",alignItems:"center"}}>
+      <img src={LOGO_URL} alt="Uboussole" style={{height:h,width:"auto",objectFit:"contain",display:"block"}}/>
+    </div>
+  );
+}
+
+// ─── Shared UI ────────────────────────────────────────────────────────────────
+function Card({children,style={}}) {
+  return <div style={{background:C.white,borderRadius:14,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,0.06)",...style}}>{children}</div>;
+}
+function STitle({children}) {
+  return <h3 style={{margin:"0 0 16px",fontSize:"0.93rem",fontWeight:800,color:C.navy}}>{children}</h3>;
+}
+function Badge({label,bg,color}) {
+  return <span style={{background:bg,color,fontSize:"0.7rem",fontWeight:700,padding:"3px 10px",borderRadius:20,whiteSpace:"nowrap"}}>{label}</span>;
+}
+function Btn({children,onClick,color=C.navy,outline=false,small=false,style={}}) {
+  const bg = outline?"transparent":color;
+  const cl = outline?color:"white";
+  return (
+    <button onClick={onClick} style={{background:bg,color:cl,border:`2px solid ${color}`,padding:small?"6px 14px":"10px 20px",borderRadius:10,fontSize:small?"0.78rem":"0.88rem",fontWeight:700,fontFamily:"inherit",cursor:"pointer",...style}}>
+      {children}
+    </button>
+  );
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+const ACCOUNTS = {
+  "etudiant@uemf.ma":        {pw:"etudiant2024",role:"student",name:"Sara El Amrani",  avatar:"👩‍🎓",extra:"Génie Informatique — L3",id:"ETU-2024-1847"},
+  "personnel@uemf.ma":       {pw:"staff2024",   role:"staff",  name:"Mohammed Benali", avatar:"👨‍💼",extra:"Direction des Ressources Humaines",id:"RH-0042"},
+  "richard.fouche@uemf.ma":  {pw:"richard2026", role:"rfstaff",name:"Richard Fouché",  avatar:"👨‍💼",extra:"Direction Générale",id:"DG-001"},
+  "admin@uemf.ma":           {pw:"uemf2024",    role:"admin",  name:"Richard Fouché",  avatar:"👨‍💻",extra:"Administration Centrale",id:"ADM-001"},
+};
+
+const ROLE_META = {
+  student:{ label:"Portail Étudiant",   color:C.green,   bg:"#E8F5E9" },
+  staff:  { label:"Portail Personnel",  color:C.amber,   bg:"#FFF8E1" },
+  rfstaff:{ label:"Portail R. Fouché",  color:C.teal,    bg:"#E0F2F1" },
+  admin:  { label:"Administration",     color:C.red,     bg:"#FFEBEE" },
+};
+
+const NEWS = [
+  {id:1,date:"2026-05-20",tag:"Classement",tc:"#E65100",bg:"#FFF3E0",icon:"🏆",title:"UEMF 1ère au Maroc — Scholar GPS 2026",body:"L'Université Euromed de Fès confirme sa position de leader national dans le classement Scholar GPS 2026, avec une progression remarquable en recherche et innovation."},
+  {id:2,date:"2026-05-18",tag:"Événement", tc:C.navy,   bg:"#E3F2FD",icon:"🎪",title:"Forum Carrières — 28 mai 2026",body:"Plus de 80 entreprises participantes. Inscription obligatoire via le portail étudiant. Apportez vos CV !"},
+  {id:3,date:"2026-05-15",tag:"Recherche", tc:C.greenDark,bg:"#E8F5E9",icon:"🔬",title:"8 chercheurs UEMF dans le top 2% mondial",body:"Huit enseignants-chercheurs de l'UEMF figurent parmi les scientifiques les plus cités au monde selon le classement Stanford."},
+  {id:4,date:"2026-05-10",tag:"Campus",    tc:C.purple, bg:"#F3E5F5",icon:"🏢",title:"Nouvelle salle CoWork@UEMF ouverte",body:"L'espace de coworking (200 places) est accessible 24h/24 pour les étudiants munis de leur badge."},
+  {id:5,date:"2026-05-05",tag:"Mobilité",  tc:C.teal,   bg:"#E0F2F1",icon:"✈️",title:"Appel à candidatures Erasmus+ 2026-2027",body:"Les candidatures pour les échanges Erasmus+ sont ouvertes jusqu'au 30 juin 2026."},
+];
+
+const INIT_DOCS = [
+  {id:1, title:"Règlement intérieur",          cat:"Règlements", date:"2024-01-15",size:"2.4 MB",dl:142,icon:"📋"},
+  {id:2, title:"Manuel de l'étudiant 2024-25", cat:"Manuels",    date:"2024-09-01",size:"5.8 MB",dl:389,icon:"📘"},
+  {id:3, title:"Procédure d'inscription",      cat:"Procédures", date:"2024-07-20",size:"1.2 MB",dl:210,icon:"📝"},
+  {id:4, title:"Formulaire de bourse",         cat:"Formulaires",date:"2024-03-10",size:"0.8 MB",dl:95, icon:"📄"},
+  {id:5, title:"Guide des filières",           cat:"Manuels",    date:"2024-08-15",size:"4.1 MB",dl:275,icon:"📘"},
+  {id:6, title:"Charte de l'Université",       cat:"Règlements", date:"2023-11-05",size:"1.9 MB",dl:188,icon:"📋"},
+  {id:7, title:"Validation des crédits",       cat:"Procédures", date:"2024-02-28",size:"0.6 MB",dl:67, icon:"📝"},
+  {id:8, title:"Demande de stage",             cat:"Formulaires",date:"2024-04-12",size:"0.5 MB",dl:134,icon:"📄"},
+  {id:9, title:"Manuel labo de recherche",     cat:"Manuels",    date:"2024-06-01",size:"3.2 MB",dl:52, icon:"📘"},
+  {id:10,title:"Reconnaissance de diplôme",    cat:"Procédures", date:"2024-01-30",size:"1.1 MB",dl:78, icon:"📝"},
+  {id:11,title:"Règlement des examens",        cat:"Règlements", date:"2024-05-20",size:"2.0 MB",dl:301,icon:"📋"},
+  {id:12,title:"Réclamation académique",       cat:"Formulaires",date:"2024-03-25",size:"0.4 MB",dl:43, icon:"📄"},
+];
+const CAT_C = {
+  Manuels:    {bg:"#E3F2FD",tc:"#1565C0",dot:"#1976D2"},
+  Procédures: {bg:"#E8F5E9",tc:"#2E7D32",dot:"#43A047"},
+  Règlements: {bg:"#FFF3E0",tc:"#E65100",dot:"#FB8C00"},
+  Formulaires:{bg:"#F3E5F5",tc:"#6A1B9A",dot:"#8E24AA"},
+};
+const CATS = ["Tous","Manuels","Procédures","Règlements","Formulaires"];
+
+const ROOMS = [
+  {id:"A101",name:"Amphi A101",cap:200,building:"Bât. A"},
+  {id:"B205",name:"Salle B205",cap:40, building:"Bât. B"},
+  {id:"C12", name:"Salle informatique C12",cap:30,building:"Bât. C"},
+  {id:"D01", name:"Salle de conférence D01",cap:80,building:"Bât. D"},
+  {id:"E10", name:"Lab sciences E10",cap:25,building:"Bât. E"},
+];
+const PURCHASE_CATS = ["Fournitures","Informatique","Mobilier","Services","Autre"];
+
+const INIT_PURCHASES = [
+  {id:"ACH-001",titre:"Licences Microsoft 365",cat:"Informatique",montant:12000,date:"2026-05-18",statut:"Approuvé",  stColor:C.green, stBg:"#E8F5E9"},
+  {id:"ACH-002",titre:"Ramettes papier A4 (500)",cat:"Fournitures", montant:800,  date:"2026-05-20",statut:"En attente",stColor:C.amber, stBg:"#FFF8E1"},
+  {id:"ACH-003",titre:"Chaises ergonomiques ×10",cat:"Mobilier",    montant:9500, date:"2026-05-15",statut:"En attente",stColor:C.amber, stBg:"#FFF8E1"},
+  {id:"ACH-004",titre:"Maintenance climatiseurs", cat:"Services",   montant:4200, date:"2026-05-12",statut:"Refusé",   stColor:C.red,   stBg:"#FFEBEE"},
+];
+
+// ─── FAQ Chatbot ───────────────────────────────────────────────────────────────
+const FAQ = [
+  {kw:["inscription","inscrire","candidater","candidature"],
+   a:"Pour candidater à l'UEMF :
+
+1. Rendez-vous sur **ueuromed.org/fr/candidater-en-ligne**
+2. Remplissez le formulaire
+3. Joignez bac, relevés, CV
+
+Les admissions ouvrent en **mars** pour septembre.",
+   s:["Quelles filières ?","Y a-t-il des bourses ?"]},
+  {kw:["filière","programme","formation","cursus","domaine"],
+   a:"L'UEMF propose :
+
+🏗️ **Ingénierie** — Informatique, Génie civil
+💼 **Management** — Business, Finance
+🏛️ **Architecture**
+⚕️ **Santé** — Biomédical
+🎓 **Doctorat**
+
+Avec **doubles diplômes** européens.",
+   s:["Comment candidater ?","Bourses ?"]},
+  {kw:["bourse","aide","financement","frais"],
+   a:"Oui !
+
+🎓 **Excellence** — Mention au bac
+🌍 **Erasmus+** — Mobilité internationale
+💡 **Aide sociale** — Critères économiques
+
+Formulaire disponible dans **Documents**.",
+   s:["Comment s'inscrire ?","Contacter l'université ?"]},
+  {kw:["réserver","salle","réservation","espace"],
+   a:"Via **Personnel → Réservation de salles** :
+
+1. Choisissez date et créneau
+2. Sélectionnez la salle
+3. Soumettez
+
+Confirmation sous **2h**.",
+   s:["Bibliothèque ?","Print Centre ?"]},
+  {kw:["bibliothèque","biblio","livre","emprunter"],
+   a:"📍 Bâtiment B, RDC
+🕐 Lun–Ven : 8h–20h | Sam : 9h–17h
+📚 Emprunt : 5 ouvrages / 14 jours
+💻 Accès numérique 24h/24",
+   s:["Shop ?","Print Centre ?"]},
+  {kw:["print","impression","imprimer","printing"],
+   a:"🖨️ Bâtiment A, Niveau 1
+
+Tarifs :
+• N&B : **0,50 Dh/page**
+• Couleur : **2 Dh/page**
+• Reliure et plastification disponibles
+
+⏱️ Commande en ligne → retrait sous 1h",
+   s:["Shop ?","Bibliothèque ?"]},
+  {kw:["shop","boutique","merchandise"],
+   a:"🏪 Boutique UEMF — Bâtiment A
+
+👕 Vêtements siglés
+🎒 Papeterie
+📚 Supports de cours
+
+Ouvert Lun–Sam 9h–18h",
+   s:["Print Centre ?","Bibliothèque ?"]},
+  {kw:["achat","acheter","commande","fournisseur"],
+   a:"Via **Personnel → Demandes d'achat** :
+
+1. Titre et catégorie
+2. Montant estimé
+3. Niveau d'urgence
+
+Validation par administration sous **48h**.",
+   s:["Réserver une salle ?","Contacter ?"]},
+  {kw:["contact","téléphone","email","adresse"],
+   a:"📍 Route de Meknès, Aïn Chkef, Fès
+📞 +212 5 35 00 17 00
+📧 contact@ueuromed.org
+🌐 ueuromed.org",
+   s:["Comment s'inscrire ?","Quelles filières ?"]},
+];
+function matchFAQ(input) {
+  const q = input.toLowerCase();
+  let best=null, score=0;
+  for(const f of FAQ) {
+    let s=0;
+    for(const kw of f.kw) if(q.includes(kw)) s+=kw.split(" ").length;
+    if(s>score){score=s;best=f;}
+  }
+  return score>0?best:null;
+}
+function BotText({text}) {
+  return text.split(/(\*\*[^*]+\*\*|
+)/g).map((p,i)=>{
+    if(p.startsWith("**")&&p.endsWith("**")) return <strong key={i}>{p.slice(2,-2)}</strong>;
+    if(p==="
+") return <br key={i}/>;
+    return p;
+  });
+}
+
+// ─── Chatbot ──────────────────────────────────────────────────────────────────
+function Chatbot() {
+  const [open,setOpen]=useState(false);
+  const [msgs,setMsgs]=useState([{from:"bot",text:"Bonjour ! 👋 Je suis **UBoussole**, votre assistant Euromed.
+
+Comment puis-je vous aider ?",s:["Comment s'inscrire ?","Quelles filières ?","Bibliothèque","Réserver une salle"]}]);
+  const [input,setInput]=useState("");
+  const [typing,setTyping]=useState(false);
+  const endRef=useRef(null);
+  useEffect(()=>{if(open)endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs,open,typing]);
+  function send(txt) {
+    const m=txt||input.trim(); if(!m) return;
+    setInput(""); setMsgs(p=>[...p,{from:"user",text:m}]); setTyping(true);
+    setTimeout(()=>{
+      const f=matchFAQ(m); setTyping(false);
+      setMsgs(p=>[...p,f?{from:"bot",text:f.a,s:f.s}:{from:"bot",text:"Je n'ai pas bien compris 🤔
+
+Suggestions :",s:["Inscription","Bibliothèque","Print Centre","Réserver salle"]}]);
+    },850);
+  }
+  return (
+    <>
+      <button onClick={()=>setOpen(o=>!o)} style={{position:"fixed",bottom:28,right:28,zIndex:10000,width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,border:`3px solid ${C.green}`,boxShadow:"0 6px 24px rgba(27,58,107,0.45)",cursor:"pointer",fontSize:"1.3rem",transition:"transform 0.2s",display:"flex",alignItems:"center",justifyContent:"center"}}
+        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+        {open?"✕":"🧭"}
+      </button>
+      {open&&(
+        <div style={{position:"fixed",bottom:96,right:28,zIndex:9999,width:355,maxHeight:540,background:C.white,borderRadius:20,boxShadow:"0 20px 60px rgba(0,0,0,0.2)",display:"flex",flexDirection:"column",overflow:"hidden",border:`1px solid ${C.gray200}`,fontFamily:"'Montserrat',sans-serif",animation:"slideUp 0.25s ease"}}>
+          <div style={{background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,padding:"13px 16px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:38,height:38,borderRadius:"50%",background:"rgba(76,175,80,0.2)",border:`2px solid ${C.green}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem"}}>🧭</div>
+            <div style={{flex:1}}>
+              <div style={{color:"white",fontWeight:800,fontSize:"0.88rem"}}>UBoussole</div>
+              <div style={{color:C.greenLight,fontSize:"0.68rem",fontWeight:600}}>Assistant Euromed · En ligne</div>
+            </div>
+            <div style={{width:8,height:8,borderRadius:"50%",background:C.green,boxShadow:`0 0 6px ${C.green}`}}/>
+          </div>
+          <div style={{flex:1,overflowY:"auto",padding:"13px 11px",display:"flex",flexDirection:"column",gap:9}}>
+            {msgs.map((msg,i)=>(
+              <div key={i} style={{display:"flex",flexDirection:"column",alignItems:msg.from==="user"?"flex-end":"flex-start"}}>
+                <div style={{maxWidth:"86%",background:msg.from==="user"?`linear-gradient(135deg,${C.navy},${C.navyLight})`:C.gray100,color:msg.from==="user"?"white":C.text,padding:"9px 13px",borderRadius:msg.from==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",fontSize:"0.81rem",lineHeight:1.55,fontWeight:500}}>
+                  <BotText text={msg.text}/>
+                </div>
+                {msg.s&&<div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:6,maxWidth:"92%"}}>
+                  {msg.s.map((s,j)=>(
+                    <button key={j} onClick={()=>send(s)} style={{background:C.white,border:`1.5px solid ${C.navy}`,color:C.navy,padding:"3px 10px",borderRadius:20,fontSize:"0.7rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}
+                      onMouseEnter={e=>{e.currentTarget.style.background=C.navy;e.currentTarget.style.color="white";}} onMouseLeave={e=>{e.currentTarget.style.background=C.white;e.currentTarget.style.color=C.navy;}}>{s}</button>
+                  ))}
+                </div>}
+              </div>
+            ))}
+            {typing&&<div style={{display:"flex"}}><div style={{background:C.gray100,padding:"9px 13px",borderRadius:"16px 16px 16px 4px",display:"flex",gap:4,alignItems:"center"}}>{[0,1,2].map(d=><div key={d} style={{width:5,height:5,borderRadius:"50%",background:C.gray400,animation:`bounce 1s ${d*0.2}s infinite`}}/>)}</div></div>}
+            <div ref={endRef}/>
+          </div>
+          <div style={{padding:"9px 11px",borderTop:`1px solid ${C.gray100}`,display:"flex",gap:7}}>
+            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Posez votre question…" style={{flex:1,padding:"8px 12px",border:`2px solid ${C.gray200}`,borderRadius:24,fontSize:"0.8rem",fontFamily:"inherit",outline:"none",color:C.text}} onFocus={e=>e.target.style.borderColor=C.navy} onBlur={e=>e.target.style.borderColor=C.gray200}/>
+            <button onClick={()=>send()} style={{width:38,height:38,borderRadius:"50%",border:"none",background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,color:"white",fontSize:"0.85rem",cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>➤</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── App Shell ────────────────────────────────────────────────────────────────
+function Shell({user,onLogout,nav,page,setPage,notif,children}) {
+  const [sideOpen,setSideOpen]=useState(true);
+  const rm=ROLE_META[user.role];
+  return (
+    <div style={{display:"flex",minHeight:"100vh",fontFamily:"'Montserrat','Segoe UI',sans-serif",background:C.offWhite,color:C.text}}>
+      <aside style={{width:sideOpen?260:68,background:`linear-gradient(180deg,${C.navyDark},${C.navy})`,display:"flex",flexDirection:"column",transition:"width 0.3s",overflow:"hidden",flexShrink:0,boxShadow:"4px 0 20px rgba(0,0,0,0.15)"}}>
+        <div style={{padding:sideOpen?"14px 10px":"14px 8px",borderBottom:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",minHeight:116}}>
+          {sideOpen?<LogoFull size="sm"/>:<LogoMark size={48}/>}
+        </div>
+        {sideOpen&&<div style={{padding:"8px 14px 6px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+          <div style={{fontSize:"0.62rem",letterSpacing:"0.1em",color:"rgba(255,255,255,0.35)",fontWeight:700,textTransform:"uppercase",marginBottom:5}}>Portail actif</div>
+          <div style={{background:rm.color,color:"white",borderRadius:7,padding:"4px 10px",fontSize:"0.73rem",fontWeight:800,display:"inline-block"}}>{rm.label}</div>
+        </div>}
+        <nav style={{padding:"10px 8px",flex:1}}>
+          {nav.map(item=>(
+            <button key={item.id} onClick={()=>setPage(item.id)}
+              style={{width:"100%",display:"flex",alignItems:"center",gap:9,padding:sideOpen?"10px 12px":"10px",marginBottom:2,border:"none",borderRadius:9,background:page===item.id?"rgba(76,175,80,0.18)":"transparent",color:page===item.id?C.greenLight:"rgba(255,255,255,0.68)",cursor:"pointer",fontFamily:"inherit",fontSize:"0.84rem",fontWeight:page===item.id?700:500,transition:"all 0.2s",borderLeft:page===item.id?`3px solid ${C.green}`:"3px solid transparent",justifyContent:sideOpen?"flex-start":"center"}}
+              onMouseEnter={e=>{if(page!==item.id)e.currentTarget.style.background="rgba(255,255,255,0.07)";}} onMouseLeave={e=>{if(page!==item.id)e.currentTarget.style.background="transparent";}}>
+              <span style={{fontSize:"1.05rem"}}>{item.icon}</span>
+              {sideOpen&&<span>{item.label}</span>}
+            </button>
+          ))}
+        </nav>
+        <div style={{padding:"8px"}}>
+          <button onClick={()=>setSideOpen(o=>!o)} style={{width:"100%",padding:"8px",background:"rgba(255,255,255,0.06)",border:"none",borderRadius:7,color:"rgba(255,255,255,0.5)",cursor:"pointer",fontSize:"0.78rem",fontFamily:"inherit",marginBottom:5}}>{sideOpen?"← Réduire":"→"}</button>
+          <button onClick={onLogout} style={{width:"100%",padding:"8px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,color:"rgba(255,255,255,0.4)",cursor:"pointer",fontSize:"0.75rem",fontFamily:"inherit"}}>{sideOpen?"🚪 Déconnexion":"🚪"}</button>
+        </div>
+      </aside>
+      <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <header style={{background:C.white,padding:"0 26px",height:64,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 2px 12px rgba(0,0,0,0.06)",borderBottom:`3px solid ${rm.color}`,flexShrink:0}}>
+          <div>
+            <h1 style={{margin:0,fontSize:"1.05rem",fontWeight:800,color:C.navy}}>
+              {nav.find(n=>n.id===page)?.icon} {nav.find(n=>n.id===page)?.label}
+            </h1>
+            <p style={{margin:0,fontSize:"0.7rem",color:C.gray400}}>Université Euro-Méditerranéenne de Fès</p>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{background:C.gray100,padding:"7px 13px",borderRadius:20,fontSize:"0.78rem",color:C.navy,fontWeight:600,display:"flex",alignItems:"center",gap:7}}>
+              <span style={{fontSize:"1.1rem"}}>{user.avatar}</span>
+              <span>{user.name}</span>
+              <span style={{background:rm.color,color:"white",padding:"1px 7px",borderRadius:10,fontSize:"0.62rem",fontWeight:800}}>{user.role.toUpperCase()}</span>
+            </div>
+          </div>
+        </header>
+        <div style={{flex:1,padding:26,overflowY:"auto"}}>{children}</div>
+      </main>
+      {notif&&<div style={{position:"fixed",bottom:26,left:26,zIndex:9998,background:C.navy,color:"white",padding:"12px 18px",borderRadius:11,boxShadow:"0 8px 28px rgba(0,0,0,0.2)",fontWeight:700,fontSize:"0.85rem",borderLeft:`4px solid ${C.green}`}}>✅ {notif}</div>}
+      <Chatbot/>
+    </div>
+  );
+}
+
+// ─── Shared Modules ───────────────────────────────────────────────────────────
+
+function NewsFeed() {
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:13}}>
+      {NEWS.map(n=>(
+        <div key={n.id} style={{background:C.white,borderRadius:13,padding:"16px 18px",boxShadow:"0 2px 10px rgba(0,0,0,0.05)",display:"flex",gap:14,alignItems:"flex-start",borderLeft:`4px solid ${n.tc}`,cursor:"pointer",transition:"box-shadow 0.2s"}}
+          onMouseEnter={e=>e.currentTarget.style.boxShadow="0 6px 22px rgba(0,0,0,0.1)"} onMouseLeave={e=>e.currentTarget.style.boxShadow="0 2px 10px rgba(0,0,0,0.05)"}>
+          <div style={{fontSize:"1.8rem",lineHeight:1,marginTop:2}}>{n.icon}</div>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+              <Badge label={n.tag} bg={n.bg} color={n.tc}/>
+              <span style={{fontSize:"0.7rem",color:C.gray400,fontWeight:600}}>{n.date}</span>
+            </div>
+            <div style={{fontWeight:800,fontSize:"0.92rem",color:C.text,marginBottom:4}}>{n.title}</div>
+            <div style={{fontSize:"0.8rem",color:C.gray600,lineHeight:1.55}}>{n.body}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DocsModule({docs,setDocs,showNotif,canAdd=false}) {
+  const [cat,setCat]=useState("Tous");
+  const [q,setQ]=useState("");
+  const [tab,setTab]=useState("list");
+  const [form,setForm]=useState({title:"",category:"Manuels",file:null});
+  const [ok,setOk]=useState(false);
+  const filtered=useMemo(()=>docs.filter(d=>{
+    const mc=cat==="Tous"||d.cat===cat;
+    const mq=!q||d.title.toLowerCase().includes(q.toLowerCase());
+    return mc&&mq;
+  }),[docs,cat,q]);
+  function hl(t){
+    if(!q) return t;
+    const i=t.toLowerCase().indexOf(q.toLowerCase());
+    if(i===-1) return t;
+    return <>{t.slice(0,i)}<mark style={{background:"#FFF59D",padding:"0 2px",borderRadius:2}}>{t.slice(i,i+q.length)}</mark>{t.slice(i+q.length)}</>;
+  }
+  function upload(e){
+    e.preventDefault();
+    if(!form.title) return;
+    const icons={Manuels:"📘",Procédures:"📝",Règlements:"📋",Formulaires:"📄"};
+    setDocs(p=>[{id:Date.now(),title:form.title,cat:form.category,date:new Date().toISOString().slice(0,10),size:form.file?`${(form.file.size/1048576).toFixed(1)} MB`:"0.1 MB",dl:0,icon:icons[form.category]},...p]);
+    setOk(true); setForm({title:"",category:"Manuels",file:null});
+    showNotif("Document ajouté !"); setTimeout(()=>setOk(false),3000);
+  }
+  return (
+    <div>
+      {canAdd&&<div style={{display:"flex",gap:8,marginBottom:18}}>
+        {[["list","📚 Bibliothèque"],["upload","⬆️ Ajouter"]].map(([id,lbl])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{padding:"7px 18px",borderRadius:20,border:"none",fontFamily:"inherit",fontWeight:700,fontSize:"0.82rem",cursor:"pointer",background:tab===id?C.navy:C.white,color:tab===id?"white":C.gray600,boxShadow:tab===id?"0 4px 14px rgba(27,58,107,0.25)":"0 1px 4px rgba(0,0,0,0.08)"}}>{lbl}</button>
+        ))}
+      </div>}
+      {tab==="list"&&<>
+        <div style={{display:"flex",gap:9,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+          <div style={{position:"relative",flex:1,minWidth:180}}>
+            <span style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",fontSize:"0.85rem"}}>🔍</span>
+            <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher…" style={{width:"100%",padding:"8px 11px 8px 32px",border:`2px solid ${q?C.navy:C.gray200}`,borderRadius:24,fontSize:"0.82rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
+          </div>
+          {CATS.map(c=>(
+            <button key={c} onClick={()=>setCat(c)} style={{padding:"6px 14px",borderRadius:20,border:"none",fontFamily:"inherit",fontWeight:700,fontSize:"0.78rem",cursor:"pointer",background:cat===c?C.navy:C.white,color:cat===c?"white":C.gray600,boxShadow:cat===c?"0 3px 12px rgba(27,58,107,0.25)":"0 1px 4px rgba(0,0,0,0.07)"}}>{c}</button>
+          ))}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14}}>
+          {filtered.map(doc=>{
+            const cc=CAT_C[doc.cat]||CAT_C["Manuels"];
+            return(
+              <div key={doc.id} style={{background:C.white,borderRadius:13,padding:18,boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:`1px solid ${C.gray100}`,transition:"transform 0.2s,box-shadow 0.2s",cursor:"pointer"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 7px 22px rgba(0,0,0,0.1)";}} onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 10px rgba(0,0,0,0.06)";}}>
+                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:11}}>
+                  <div style={{width:42,height:42,borderRadius:11,background:cc.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>{doc.icon}</div>
+                  <Badge label={doc.cat} bg={cc.bg} color={cc.tc}/>
+                </div>
+                <h4 style={{margin:"0 0 5px",fontSize:"0.87rem",fontWeight:700,color:C.text,lineHeight:1.4}}>{q?hl(doc.title):doc.title}</h4>
+                <div style={{fontSize:"0.72rem",color:C.gray400,marginBottom:12}}>{doc.date} · {doc.size}</div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontSize:"0.72rem",color:C.gray400}}>⬇️ {doc.dl}</span>
+                  <button onClick={()=>showNotif(`"${doc.title}" téléchargé !`)} style={{background:C.navy,color:"white",border:"none",padding:"5px 13px",borderRadius:7,fontSize:"0.75rem",fontFamily:"inherit",fontWeight:700,cursor:"pointer"}}>Télécharger</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {filtered.length===0&&<div style={{textAlign:"center",padding:"50px 0",color:C.gray400}}><div style={{fontSize:"2.5rem"}}>📭</div><div style={{fontWeight:700,marginTop:10}}>Aucun document</div></div>}
+      </>}
+      {tab==="upload"&&<div style={{maxWidth:500}}>
+        <Card>
+          <div style={{textAlign:"center",marginBottom:24}}><div style={{fontSize:"2.2rem",marginBottom:8}}>⬆️</div><h2 style={{margin:0,color:C.navy,fontWeight:800,fontSize:"1.15rem"}}>Ajouter un document</h2></div>
+          {ok&&<div style={{background:"#E8F5E9",border:"1px solid #A5D6A7",borderRadius:9,padding:"11px 15px",marginBottom:18,color:"#2E7D32",fontWeight:700}}>✅ Document ajouté !</div>}
+          <form onSubmit={upload}>
+            <div style={{marginBottom:16}}><label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.05em"}}>Titre *</label>
+              <input type="text" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} required placeholder="Titre du document…" style={{width:"100%",padding:"10px 13px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.88rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+            <div style={{marginBottom:16}}><label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.05em"}}>Catégorie</label>
+              <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                {CATS.slice(1).map(c=>{const cc=CAT_C[c];return <span key={c} onClick={()=>setForm(f=>({...f,category:c}))} style={{padding:"4px 13px",borderRadius:20,fontSize:"0.76rem",fontWeight:700,cursor:"pointer",background:form.category===c?cc.dot:cc.bg,color:form.category===c?"white":cc.tc,border:`2px solid ${form.category===c?cc.dot:"transparent"}`,transition:"all 0.15s"}}>{c}</span>;})}
+              </div></div>
+            <div style={{marginBottom:24}}><label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.05em"}}>Fichier</label>
+              <div style={{border:`2px dashed ${form.file?C.green:C.gray200}`,borderRadius:11,padding:"20px",textAlign:"center",background:form.file?"#E8F5E9":C.offWhite,position:"relative"}}>
+                {form.file?<><div style={{fontSize:"1.3rem"}}>✅</div><div style={{fontWeight:700,color:C.greenDark,fontSize:"0.85rem",marginTop:4}}>{form.file.name}</div></>:<><div style={{fontSize:"1.6rem"}}>📁</div><div style={{color:C.gray400,fontSize:"0.82rem",marginTop:5}}>Glissez ou cliquez</div></>}
+                <input type="file" onChange={e=>setForm(f=>({...f,file:e.target.files?.[0]||null}))} style={{position:"absolute",opacity:0,inset:0,cursor:"pointer"}}/>
+              </div></div>
+            <button type="submit" style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${C.greenDark},${C.green})`,color:"white",border:"none",borderRadius:11,fontSize:"0.92rem",fontWeight:800,fontFamily:"inherit",cursor:"pointer",boxShadow:"0 5px 18px rgba(76,175,80,0.35)"}}>⬆️ Ajouter</button>
+          </form>
+        </Card>
+      </div>}
+    </div>
+  );
+}
+
+// ─── Service Access Module ─────────────────────────────────────────────────────
+function ServiceCard({icon,title,desc,status,statusColor,statusBg,hours,action}) {
+  return (
+    <Card style={{display:"flex",flexDirection:"column",gap:12}}>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+        <div style={{fontSize:"2.2rem"}}>{icon}</div>
+        <span style={{background:statusBg,color:statusColor,fontSize:"0.7rem",fontWeight:700,padding:"3px 10px",borderRadius:20}}>{status}</span>
+      </div>
+      <div>
+        <div style={{fontWeight:800,fontSize:"0.95rem",color:C.navy,marginBottom:4}}>{title}</div>
+        <div style={{fontSize:"0.8rem",color:C.gray600,lineHeight:1.5,marginBottom:6}}>{desc}</div>
+        {hours&&<div style={{fontSize:"0.75rem",color:C.gray400,fontWeight:600}}>🕐 {hours}</div>}
+      </div>
+      {action&&<button onClick={action.fn} style={{marginTop:"auto",background:C.navy,color:"white",border:"none",padding:"8px",borderRadius:9,fontSize:"0.8rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{action.label}</button>}
+    </Card>
+  );
+}
+
+function ServicesModule({showNotif,setPage}) {
+  const [badgeModal,setBadgeModal]=useState(false);
+  const [badgeReq,setBadgeReq]=useState({motif:"",date:""});
+  const [requests,setRequests]=useState([
+    {id:"ACC-001",service:"Bibliothèque",statut:"Actif",   color:C.green, bg:"#E8F5E9",date:"2026-01-10"},
+    {id:"ACC-002",service:"Lab Informatique",statut:"Actif",color:C.green,bg:"#E8F5E9",date:"2026-02-15"},
+    {id:"ACC-003",service:"Salle de sport",  statut:"En cours",color:C.amber,bg:"#FFF8E1",date:"2026-05-18"},
+  ]);
+  function submitBadge(e){
+    e.preventDefault();
+    setRequests(p=>[...p,{id:`ACC-00${p.length+1}`,service:"Badge " + badgeReq.motif,statut:"En cours",color:C.amber,bg:"#FFF8E1",date:new Date().toISOString().slice(0,10)}]);
+    setBadgeModal(false); setBadgeReq({motif:"",date:""});
+    showNotif("Demande d'accès soumise !");
+  }
+  return (
+    <div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(230px,1fr))",gap:16,marginBottom:28}}>
+        <ServiceCard icon="📚" title="Bibliothèque" desc="Accès au fonds documentaire, bases de données en ligne et espaces de lecture." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Ven 8h–20h · Sam 9h–17h" action={{label:"Accéder au catalogue →",fn:()=>showNotif("Catalogue ouvert !")}}/>
+        <ServiceCard icon="🖨️" title="Print Centre" desc="Impression N&B (0,50 Dh), couleur (2 Dh), reliure, plastification." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Ven 8h–19h · Sam 9h–16h" action={{label:"Commander en ligne →",fn:()=>showNotif("Commande créée !")}}/>
+        <ServiceCard icon="🛍️" title="Shop UEMF" desc="Boutique officielle : vêtements siglés, papeterie, supports de cours." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Sam 9h–18h" action={{label:"Voir les articles →",fn:()=>showNotif("Boutique ouverte !")}}/>
+        <ServiceCard icon="🏋️" title="Salle de sport" desc="Equipement complet : musculation, cardio, terrains basket & tennis." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Sam 7h–22h" action={{label:"Réserver un créneau →",fn:()=>showNotif("Créneau réservé !")}}/> 
+        <ServiceCard icon="🍽️" title="Restaurant U" desc="Restaurant universitaire avec menu complet à tarif étudiant (25 Dh)." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Ven 11h30–14h30" action={{label:"Voir le menu →",fn:()=>showNotif("Menu affiché !")}}/>
+        <ServiceCard icon="🏥" title="Infirmerie" desc="Soins de premier secours, suivi médical et vaccinations." status="Ouvert" statusColor={C.greenDark} statusBg="#E8F5E9" hours="Lun–Ven 8h–17h" action={{label:"Prendre RDV →",fn:()=>showNotif("RDV pris !")}}/>
+        <ServiceCard icon="💻" title="Lab Informatique" desc="Salles équipées avec accès aux logiciels professionnels et internet haut débit." status="Sur badge" statusColor={C.navy} statusBg="#E3F2FD" hours="Lun–Ven 8h–20h" action={{label:"Demander accès →",fn:()=>setBadgeModal(true)}}/>
+        <ServiceCard icon="🚗" title="Parking Campus" desc="Parking sécurisé avec barrières, accessible aux étudiants et personnel." status="Accès badge" statusColor={C.navy} statusBg="#E3F2FD" hours="24h/24" action={{label:"Demander badge →",fn:()=>setBadgeModal(true)}}/>
+      </div>
+
+      {/* Access requests */}
+      <Card>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <STitle>🔑 Mes accès actifs</STitle>
+          <Btn small onClick={()=>setBadgeModal(true)} color={C.navy}>+ Demander un accès</Btn>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:9}}>
+          {requests.map(r=>(
+            <div key={r.id} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 14px",background:C.gray100,borderRadius:10}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0}}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:"0.86rem"}}>{r.service}</div>
+                <div style={{fontSize:"0.72rem",color:C.gray400}}>Depuis le {r.date}</div>
+              </div>
+              <Badge label={r.statut} bg={r.bg} color={r.color}/>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Badge request modal */}
+      {badgeModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <Card style={{width:420,position:"relative"}}>
+            <button onClick={()=>setBadgeModal(false)} style={{position:"absolute",top:14,right:14,background:"none",border:"none",fontSize:"1.2rem",cursor:"pointer",color:C.gray400}}>✕</button>
+            <div style={{fontSize:"2rem",marginBottom:12}}>🔑</div>
+            <h3 style={{margin:"0 0 18px",color:C.navy,fontWeight:800}}>Demande d'accès</h3>
+            <form onSubmit={submitBadge}>
+              <div style={{marginBottom:14}}><label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:6,textTransform:"uppercase"}}>Service / Espace *</label>
+                <input type="text" value={badgeReq.motif} onChange={e=>setBadgeReq(f=>({...f,motif:e.target.value}))} required placeholder="Ex: Lab informatique C12" style={{width:"100%",padding:"10px 13px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.88rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+              <div style={{marginBottom:20}}><label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:6,textTransform:"uppercase"}}>Date souhaitée</label>
+                <input type="date" value={badgeReq.date} onChange={e=>setBadgeReq(f=>({...f,date:e.target.value}))} style={{width:"100%",padding:"10px 13px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.88rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+              <button type="submit" style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,color:"white",border:"none",borderRadius:10,fontSize:"0.9rem",fontWeight:800,fontFamily:"inherit",cursor:"pointer"}}>Soumettre la demande</button>
+            </form>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Rooms Module ──────────────────────────────────────────────────────────────
+function RoomsModule({showNotif}) {
+  const [bookings,setBookings]=useState([
+    {id:1,room:"Amphi A101",date:"2026-05-26",start:"09:00",end:"11:00",motif:"Cours Maths"},
+    {id:2,room:"Salle B205", date:"2026-05-28",start:"14:00",end:"16:00",motif:"Réunion équipe"},
+  ]);
+  const [form,setForm]=useState({room:"A101",date:"",start:"09:00",end:"11:00",motif:""});
+  function submit(e){
+    e.preventDefault();
+    if(!form.date||!form.motif) return;
+    const r=ROOMS.find(r=>r.id===form.room);
+    setBookings(p=>[...p,{id:Date.now(),room:r.name,date:form.date,start:form.start,end:form.end,motif:form.motif}]);
+    setForm({room:"A101",date:"",start:"09:00",end:"11:00",motif:""});
+    showNotif("Réservation confirmée !");
+  }
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1.3fr 1fr",gap:22}}>
+      <div>
+        <Card style={{marginBottom:18}}>
+          <STitle>🏫 Réserver une salle</STitle>
+          <form onSubmit={submit}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+              <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Salle</label>
+                <select value={form.room} onChange={e=>setForm(f=>({...f,room:e.target.value}))} style={{width:"100%",padding:"9px 11px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.85rem",fontFamily:"inherit",outline:"none",background:C.white}}>
+                  {ROOMS.map(r=><option key={r.id} value={r.id}>{r.name} ({r.cap} pl.)</option>)}
+                </select></div>
+              <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Date *</label>
+                <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} required style={{width:"100%",padding:"9px 11px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.85rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+              <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Début</label>
+                <input type="time" value={form.start} onChange={e=>setForm(f=>({...f,start:e.target.value}))} style={{width:"100%",padding:"9px 11px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.85rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+              <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Fin</label>
+                <input type="time" value={form.end} onChange={e=>setForm(f=>({...f,end:e.target.value}))} style={{width:"100%",padding:"9px 11px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.85rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+            </div>
+            <div style={{marginBottom:16}}><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Motif *</label>
+              <input type="text" value={form.motif} onChange={e=>setForm(f=>({...f,motif:e.target.value}))} required placeholder="Cours, réunion, événement…" style={{width:"100%",padding:"9px 11px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.85rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+            <button type="submit" style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,color:"white",border:"none",borderRadius:10,fontSize:"0.9rem",fontWeight:800,fontFamily:"inherit",cursor:"pointer"}}>✅ Confirmer la réservation</button>
+          </form>
+        </Card>
+        <Card>
+          <STitle>📋 Mes réservations</STitle>
+          {bookings.length===0&&<div style={{color:C.gray400,textAlign:"center",padding:"20px 0"}}>Aucune réservation</div>}
+          {bookings.map(b=>(
+            <div key={b.id} style={{display:"flex",gap:12,padding:"10px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"center"}}>
+              <div style={{width:42,height:42,borderRadius:10,background:"#E3F2FD",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem",flexShrink:0}}>🏫</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:"0.86rem",color:C.navy}}>{b.room}</div>
+                <div style={{fontSize:"0.73rem",color:C.gray400}}>{b.date} · {b.start}–{b.end}</div>
+                <div style={{fontSize:"0.75rem",color:C.gray600,fontWeight:600}}>{b.motif}</div>
+              </div>
+              <button onClick={()=>setBookings(p=>p.filter(x=>x.id!==b.id))} style={{background:"none",border:"none",cursor:"pointer",color:C.red,fontSize:"1rem"}}>🗑️</button>
+            </div>
+          ))}
+        </Card>
+      </div>
+      <div>
+        <Card>
+          <STitle>🗓️ Disponibilité des salles</STitle>
+          {ROOMS.map(r=>(
+            <div key={r.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${C.gray100}`}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:C.green,flexShrink:0}}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:"0.84rem"}}>{r.name}</div>
+                <div style={{fontSize:"0.72rem",color:C.gray400}}>{r.building} · {r.cap} places</div>
+              </div>
+              <Badge label="Disponible" bg="#E8F5E9" color={C.greenDark}/>
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── Purchase Module ───────────────────────────────────────────────────────────
+function PurchaseModule({showNotif}) {
+  const [purchases,setPurchases]=useState(INIT_PURCHASES);
+  const [form,setForm]=useState({titre:"",cat:PURCHASE_CATS[0],montant:"",desc:"",urgence:"Normal"});
+  function submit(e){
+    e.preventDefault();
+    if(!form.titre||!form.montant) return;
+    const newP={id:`ACH-${String(purchases.length+1).padStart(3,"0")}`,titre:form.titre,cat:form.cat,montant:Number(form.montant),date:new Date().toISOString().slice(0,10),statut:"En attente",stColor:C.amber,stBg:"#FFF8E1"};
+    setPurchases(p=>[newP,...p]);
+    setForm({titre:"",cat:PURCHASE_CATS[0],montant:"",desc:"",urgence:"Normal"});
+    showNotif("Demande d'achat soumise !");
+  }
+  const total=purchases.reduce((s,p)=>s+p.montant,0);
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr",gap:22}}>
+      <div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:18}}>
+          {[{label:"Total demandes",val:purchases.length,icon:"📋",color:C.navy},{label:"En attente",val:purchases.filter(p=>p.statut==="En attente").length,icon:"⏳",color:C.amber},{label:"Budget total (Dh)",val:total.toLocaleString(),icon:"💰",color:C.green}].map((s,i)=>(
+            <Card key={i} style={{borderTop:`3px solid ${s.color}`,padding:16}}>
+              <div style={{fontSize:"1.4rem",marginBottom:5}}>{s.icon}</div>
+              <div style={{fontSize:"1.3rem",fontWeight:800,color:s.color}}>{s.val}</div>
+              <div style={{fontSize:"0.72rem",color:C.gray400,fontWeight:600}}>{s.label}</div>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <STitle>🛒 Historique des demandes</STitle>
+          <div style={{display:"flex",flexDirection:"column",gap:9}}>
+            {purchases.map(p=>(
+              <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 13px",background:C.gray100,borderRadius:10}}>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:"0.86rem"}}>{p.titre}</div>
+                  <div style={{fontSize:"0.72rem",color:C.gray400}}>{p.id} · {p.date} · {p.cat}</div>
+                </div>
+                <div style={{fontWeight:800,fontSize:"0.88rem",color:C.navy,flexShrink:0}}>{p.montant.toLocaleString()} Dh</div>
+                <Badge label={p.statut} bg={p.stBg} color={p.stColor}/>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+      <Card>
+        <STitle>➕ Nouvelle demande d'achat</STitle>
+        <form onSubmit={submit}>
+          <div style={{marginBottom:13}}><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Objet *</label>
+            <input type="text" value={form.titre} onChange={e=>setForm(f=>({...f,titre:e.target.value}))} required placeholder="Intitulé de l'achat" style={{width:"100%",padding:"9px 12px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.86rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:13}}>
+            <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Catégorie</label>
+              <select value={form.cat} onChange={e=>setForm(f=>({...f,cat:e.target.value}))} style={{width:"100%",padding:"9px 12px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.86rem",fontFamily:"inherit",outline:"none",background:C.white}}>
+                {PURCHASE_CATS.map(c=><option key={c}>{c}</option>)}
+              </select></div>
+            <div><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Montant (Dh) *</label>
+              <input type="number" value={form.montant} onChange={e=>setForm(f=>({...f,montant:e.target.value}))} required placeholder="0.00" style={{width:"100%",padding:"9px 12px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.86rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/></div>
+          </div>
+          <div style={{marginBottom:13}}><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Description</label>
+            <textarea value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} rows={3} placeholder="Détails de la demande…" style={{width:"100%",padding:"9px 12px",border:`2px solid ${C.gray200}`,borderRadius:9,fontSize:"0.84rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical"}}/></div>
+          <div style={{marginBottom:18}}><label style={{display:"block",fontSize:"0.7rem",fontWeight:700,color:C.navy,marginBottom:5,textTransform:"uppercase"}}>Urgence</label>
+            <div style={{display:"flex",gap:7}}>
+              {["Normal","Urgent","Critique"].map(u=>(
+                <button type="button" key={u} onClick={()=>setForm(f=>({...f,urgence:u}))} style={{flex:1,padding:"7px",borderRadius:8,border:`2px solid ${form.urgence===u?(u==="Normal"?C.green:u==="Urgent"?C.amber:C.red):C.gray200}`,background:form.urgence===u?(u==="Normal"?"#E8F5E9":u==="Urgent"?"#FFF8E1":"#FFEBEE"):C.white,color:form.urgence===u?(u==="Normal"?C.greenDark:u==="Urgent"?C.amber:C.red):C.gray400,fontWeight:700,fontSize:"0.75rem",cursor:"pointer",fontFamily:"inherit"}}>{u}</button>
+              ))}
+            </div></div>
+          <button type="submit" style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${C.amber},${"#FBBF24"})`,color:"white",border:"none",borderRadius:10,fontSize:"0.9rem",fontWeight:800,fontFamily:"inherit",cursor:"pointer"}}>🛒 Soumettre</button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Admin Panels ──────────────────────────────────────────────────────────────
+const MOCK_USERS = [
+  {id:"ETU-001",name:"Sara El Amrani",  role:"student",email:"sara@uemf.ma",   status:"Actif", dept:"Génie Info L3"},
+  {id:"ETU-002",name:"Yassine Ouali",   role:"student",email:"yassine@uemf.ma",status:"Actif", dept:"Architecture M1"},
+  {id:"RH-042", name:"Mohammed Benali", role:"staff",  email:"m.benali@uemf.ma",status:"Actif", dept:"RH"},
+  {id:"IT-007", name:"Leila Mansouri",  role:"staff",  email:"l.mansouri@uemf.ma",status:"Actif",dept:"DSI"},
+  {id:"ETU-003",name:"Amine Belhaj",    role:"student",email:"amine@uemf.ma",  status:"Inactif",dept:"Management L2"},
+];
+function AdminPanel({showNotif}) {
+  const [tab,setTab]=useState("users");
+  const [purchases,setPurchases]=useState(INIT_PURCHASES);
+  const [users]=useState(MOCK_USERS);
+  const totalBudget=purchases.reduce((s,p)=>s+p.montant,0);
+  const approuved=purchases.filter(p=>p.statut==="Approuvé").reduce((s,p)=>s+p.montant,0);
+  function approvePurchase(id){
+    setPurchases(p=>p.map(x=>x.id===id?{...x,statut:"Approuvé",stColor:C.green,stBg:"#E8F5E9"}:x));
+    showNotif("Demande approuvée !");
+  }
+  function rejectPurchase(id){
+    setPurchases(p=>p.map(x=>x.id===id?{...x,statut:"Refusé",stColor:C.red,stBg:"#FFEBEE"}:x));
+    showNotif("Demande refusée.");
+  }
+  const tabs=[["users","👥 Utilisateurs"],["purchases","🛒 Achats"],["budget","💰 Budget"],["stats","📈 Statistiques"]];
+  return (
+    <div>
+      <div style={{display:"flex",gap:7,marginBottom:22,flexWrap:"wrap"}}>
+        {tabs.map(([id,lbl])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{padding:"7px 16px",borderRadius:20,border:"none",fontFamily:"inherit",fontWeight:700,fontSize:"0.8rem",cursor:"pointer",background:tab===id?C.navy:C.white,color:tab===id?"white":C.gray600,boxShadow:tab===id?"0 4px 14px rgba(27,58,107,0.25)":"0 1px 4px rgba(0,0,0,0.07)"}}>{lbl}</button>
+        ))}
+      </div>
+
+      {/* USERS */}
+      {tab==="users"&&(
+        <Card>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+            <STitle>👥 Gestion des utilisateurs & accès</STitle>
+            <Btn small onClick={()=>showNotif("Export CSV généré !")} outline color={C.navy}>⬇️ Export</Btn>
+          </div>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:"0.84rem"}}>
+              <thead><tr style={{borderBottom:`2px solid ${C.gray200}`}}>
+                {["ID","Nom","Rôle","Email","Département","Statut","Actions"].map(h=>(
+                  <th key={h} style={{padding:"8px 12px",textAlign:"left",fontWeight:800,color:C.navy,fontSize:"0.75rem",textTransform:"uppercase",letterSpacing:"0.04em"}}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {users.map(u=>(
+                  <tr key={u.id} style={{borderBottom:`1px solid ${C.gray100}`}}>
+                    <td style={{padding:"10px 12px",color:C.gray400,fontSize:"0.75rem",fontWeight:600}}>{u.id}</td>
+                    <td style={{padding:"10px 12px",fontWeight:700}}>{u.name}</td>
+                    <td style={{padding:"10px 12px"}}><Badge label={u.role} bg={u.role==="student"?"#E8F5E9":u.role==="staff"?"#FFF8E1":"#FFEBEE"} color={u.role==="student"?C.greenDark:u.role==="staff"?C.amber:C.red}/></td>
+                    <td style={{padding:"10px 12px",color:C.gray600,fontSize:"0.8rem"}}>{u.email}</td>
+                    <td style={{padding:"10px 12px",color:C.gray600,fontSize:"0.8rem"}}>{u.dept}</td>
+                    <td style={{padding:"10px 12px"}}><Badge label={u.status} bg={u.status==="Actif"?"#E8F5E9":"#FFF3E0"} color={u.status==="Actif"?C.greenDark:"#E65100"}/></td>
+                    <td style={{padding:"10px 12px"}}>
+                      <button onClick={()=>showNotif(`Droits de ${u.name} modifiés`)} style={{background:"none",border:`1px solid ${C.navy}`,color:C.navy,padding:"4px 10px",borderRadius:7,fontSize:"0.72rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Modifier</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* PURCHASES */}
+      {tab==="purchases"&&(
+        <Card>
+          <STitle>🛒 Validation des demandes d'achat</STitle>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {purchases.map(p=>(
+              <div key={p.id} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:C.gray100,borderRadius:11}}>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:800,fontSize:"0.88rem"}}>{p.titre}</div>
+                  <div style={{fontSize:"0.73rem",color:C.gray400,marginTop:2}}>{p.id} · {p.date} · {p.cat}</div>
+                </div>
+                <div style={{fontWeight:800,fontSize:"0.92rem",color:C.navy,flexShrink:0}}>{p.montant.toLocaleString()} Dh</div>
+                <Badge label={p.statut} bg={p.stBg} color={p.stColor}/>
+                {p.statut==="En attente"&&(
+                  <div style={{display:"flex",gap:7,flexShrink:0}}>
+                    <button onClick={()=>approvePurchase(p.id)} style={{background:C.green,color:"white",border:"none",padding:"6px 12px",borderRadius:7,fontSize:"0.76rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓ Approuver</button>
+                    <button onClick={()=>rejectPurchase(p.id)} style={{background:C.red,color:"white",border:"none",padding:"6px 12px",borderRadius:7,fontSize:"0.76rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✗ Refuser</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* BUDGET */}
+      {tab==="budget"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:22}}>
+            {[{l:"Budget total",v:`${totalBudget.toLocaleString()} Dh`,i:"💰",c:C.navy},{l:"Approuvé",v:`${approuved.toLocaleString()} Dh`,i:"✅",c:C.green},{l:"En attente",v:`${purchases.filter(p=>p.statut==="En attente").reduce((s,p)=>s+p.montant,0).toLocaleString()} Dh`,i:"⏳",c:C.amber},{l:"Refusé",v:`${purchases.filter(p=>p.statut==="Refusé").reduce((s,p)=>s+p.montant,0).toLocaleString()} Dh`,i:"❌",c:C.red}].map((s,i)=>(
+              <Card key={i} style={{borderTop:`4px solid ${s.c}`}}>
+                <div style={{fontSize:"1.8rem",marginBottom:8}}>{s.i}</div>
+                <div style={{fontSize:"1.4rem",fontWeight:800,color:s.c}}>{s.v}</div>
+                <div style={{fontSize:"0.75rem",color:C.gray400,fontWeight:600}}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <STitle>📊 Répartition par catégorie</STitle>
+            {PURCHASE_CATS.map(cat=>{
+              const amt=purchases.filter(p=>p.cat===cat).reduce((s,p)=>s+p.montant,0);
+              const pct=totalBudget>0?Math.round((amt/totalBudget)*100):0;
+              return(
+                <div key={cat} style={{marginBottom:14}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                    <span style={{fontSize:"0.82rem",fontWeight:700}}>{cat}</span>
+                    <span style={{fontSize:"0.82rem",color:C.gray400}}>{amt.toLocaleString()} Dh &nbsp;({pct}%)</span>
+                  </div>
+                  <div style={{height:8,background:C.gray100,borderRadius:4}}>
+                    <div style={{height:"100%",borderRadius:4,background:`linear-gradient(90deg,${C.navy},${C.navyLight})`,width:`${pct}%`,transition:"width 0.5s"}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
+        </div>
+      )}
+
+      {/* STATS */}
+      {tab==="stats"&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <Card>
+            <STitle>👥 Utilisateurs par rôle</STitle>
+            {[{r:"Étudiants",v:1247,c:C.green,i:"👩‍🎓"},{r:"Personnel",v:89,c:C.amber,i:"👨‍💼"},{r:"Admin",v:12,c:C.red,i:"👩‍💻"}].map(s=>(
+              <div key={s.r} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:`1px solid ${C.gray100}`}}>
+                <span style={{fontSize:"1.4rem"}}>{s.i}</span>
+                <div style={{flex:1}}><div style={{fontWeight:700,fontSize:"0.88rem"}}>{s.r}</div>
+                  <div style={{height:6,background:C.gray100,borderRadius:3,marginTop:5}}><div style={{height:"100%",borderRadius:3,background:s.c,width:`${(s.v/1348)*100}%`,transition:"width 0.5s"}}/></div>
+                </div>
+                <div style={{fontWeight:800,color:s.c,fontSize:"1rem"}}>{s.v}</div>
+              </div>
+            ))}
+          </Card>
+          <Card>
+            <STitle>📰 Actualités publiées</STitle>
+            {NEWS.map(n=>(
+              <div key={n.id} style={{display:"flex",gap:10,padding:"9px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"center"}}>
+                <span style={{fontSize:"1.1rem"}}>{n.icon}</span>
+                <div style={{flex:1}}><div style={{fontWeight:700,fontSize:"0.82rem"}}>{n.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{n.date}</div></div>
+                <button onClick={()=>showNotif("Article modifié !")} style={{background:"none",border:`1px solid ${C.gray200}`,borderRadius:7,padding:"3px 10px",fontSize:"0.7rem",cursor:"pointer",fontFamily:"inherit",color:C.gray600}}>✏️</button>
+              </div>
+            ))}
+            <Btn small color={C.navy} onClick={()=>showNotif("Nouvelle actualité créée !")} style={{marginTop:12}}>+ Publier actualité</Btn>
+          </Card>
+          <Card>
+            <STitle>🏫 Utilisation des salles</STitle>
+            {ROOMS.map(r=>{const pct=Math.floor(Math.random()*70+10);return(
+              <div key={r.id} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:"0.8rem",fontWeight:600}}>{r.name}</span><span style={{fontSize:"0.8rem",color:C.gray400}}>{pct}%</span></div>
+                <div style={{height:7,background:C.gray100,borderRadius:3}}><div style={{height:"100%",borderRadius:3,background:pct>70?C.red:pct>40?C.amber:C.green,width:`${pct}%`}}/></div>
+              </div>
+            );})}
+          </Card>
+          <Card>
+            <STitle>📚 Documents les plus téléchargés</STitle>
+            {INIT_DOCS.sort((a,b)=>b.dl-a.dl).slice(0,5).map(d=>(
+              <div key={d.id} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"center"}}>
+                <span style={{fontSize:"1.1rem"}}>{d.icon}</span>
+                <div style={{flex:1}}><div style={{fontWeight:700,fontSize:"0.82rem"}}>{d.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{d.cat}</div></div>
+                <div style={{fontWeight:800,color:C.navy,fontSize:"0.85rem"}}>⬇️ {d.dl}</div>
+              </div>
+            ))}
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PORTALS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StudentPortal({user,onLogout}) {
+  const [page,setPage]=useState("dashboard");
+  const [docs,setDocs]=useState(INIT_DOCS);
+  const [notif,setNotif]=useState(null);
+  function showNotif(m){setNotif(m);setTimeout(()=>setNotif(null),3000);}
+  const nav=[
+    {id:"dashboard",label:"Tableau de bord",icon:"🏠"},
+    {id:"news",     label:"Actualités",      icon:"📰"},
+    {id:"documents",label:"Documents",       icon:"📚"},
+    {id:"services", label:"Services campus", icon:"🏛️"},
+    {id:"schedule", label:"Mon emploi du temps",icon:"📅"},
+  ];
+  return (
+    <Shell user={user} onLogout={onLogout} nav={nav} page={page} setPage={setPage} notif={notif}>
+      {page==="dashboard"&&(
+        <div>
+          <div style={{background:`linear-gradient(135deg,${C.navyDark},${C.navy})`,borderRadius:16,padding:"26px 30px",marginBottom:22,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 8px 32px rgba(27,58,107,0.25)",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",right:-30,top:-30,width:160,height:160,borderRadius:"50%",background:"rgba(76,175,80,0.15)"}}/>
+            <div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.82rem",marginBottom:5}}>Portail Étudiant 👩‍🎓</div>
+              <h2 style={{color:"white",margin:"0 0 3px",fontSize:"1.35rem",fontWeight:800}}>Bonjour, {user.name} !</h2>
+              <div style={{color:C.greenLight,fontSize:"0.8rem",fontWeight:600}}>{user.extra}</div>
+              <div style={{color:"rgba(255,255,255,0.4)",fontSize:"0.72rem",marginTop:3}}>{user.id}</div>
+            </div>
+            <LogoMark size={68}/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
+            {[{l:"Crédits validés",v:"124/180",i:"🎓",c:C.green},{l:"Moyenne générale",v:"15.4/20",i:"📊",c:C.navy},{l:"Documents",v:docs.length,i:"📁",c:C.purple},{l:"Services actifs",v:"6",i:"✅",c:C.teal}].map((s,i)=>(
+              <Card key={i} style={{borderTop:`4px solid ${s.c}`}}>
+                <div style={{fontSize:"1.6rem",marginBottom:6}}>{s.i}</div>
+                <div style={{fontSize:"1.4rem",fontWeight:800,color:s.c}}>{s.v}</div>
+                <div style={{fontSize:"0.75rem",color:C.gray400,fontWeight:600}}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+            <Card><STitle>📰 Dernières actualités</STitle>{NEWS.slice(0,3).map(n=>(
+              <div key={n.id} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.gray100}`}}>
+                <span style={{fontSize:"1.1rem"}}>{n.icon}</span>
+                <div><div style={{fontWeight:700,fontSize:"0.83rem"}}>{n.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{n.date}</div></div>
+              </div>))}
+              <button onClick={()=>setPage("news")} style={{marginTop:12,background:"none",border:`1px solid ${C.navy}`,color:C.navy,padding:"6px 14px",borderRadius:8,fontSize:"0.78rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Voir tout →</button>
+            </Card>
+            <Card><STitle>🏛️ Accès rapides</STitle>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
+                {[{icon:"📚",label:"Bibliothèque",fn:()=>setPage("services")},{icon:"🖨️",label:"Print Centre",fn:()=>setPage("services")},{icon:"🛍️",label:"Shop UEMF",fn:()=>setPage("services")},{icon:"📅",label:"Emploi du temps",fn:()=>setPage("schedule")}].map((a,i)=>(
+                  <button key={i} onClick={a.fn} style={{display:"flex",alignItems:"center",gap:9,padding:"11px 13px",background:C.offWhite,border:`1px solid ${C.gray200}`,borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:"0.83rem",fontWeight:700,color:C.navy,transition:"all 0.15s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.background=C.navy;e.currentTarget.style.color="white";}} onMouseLeave={e=>{e.currentTarget.style.background=C.offWhite;e.currentTarget.style.color=C.navy;}}>
+                    <span style={{fontSize:"1.2rem"}}>{a.icon}</span>{a.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+      {page==="news"&&<div><h2 style={{margin:"0 0 18px",color:C.navy,fontWeight:800}}>📰 Actualités UEMF</h2><NewsFeed/></div>}
+      {page==="documents"&&<DocsModule docs={docs} setDocs={setDocs} showNotif={showNotif} canAdd={false}/>}
+      {page==="services"&&<ServicesModule showNotif={showNotif} setPage={setPage}/>}
+      {page==="schedule"&&(
+        <Card>
+          <STitle>📅 Emploi du temps — Semaine du 26 mai 2026</STitle>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:"0.82rem",minWidth:500}}>
+              <thead><tr style={{background:C.navy}}>
+                {["","Lundi","Mardi","Mercredi","Jeudi","Vendredi"].map(h=>(
+                  <th key={h} style={{padding:"10px 12px",textAlign:"center",color:"white",fontWeight:700,fontSize:"0.78rem"}}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {[["08h–10h","Algo & Prog","Maths Disc.","","Réseaux",""],
+                  ["10h–12h","","Architecture","Algo & Prog","","BD Relationnelles"],
+                  ["14h–16h","Réseaux","","Maths Disc.","Algo & Prog",""],
+                  ["16h–18h","","BD Relationnelles","","","Conférence IA"]].map((row,i)=>(
+                  <tr key={i} style={{borderBottom:`1px solid ${C.gray100}`,background:i%2===0?C.white:C.offWhite}}>
+                    {row.map((cell,j)=>(
+                      <td key={j} style={{padding:"10px 12px",textAlign:"center",fontWeight:j===0?700:cell?600:400,color:j===0?C.navy:cell?C.navy:C.gray200,background:cell&&j>0?"#E3F2FD":"",borderRadius:cell&&j>0?7:"",fontSize:"0.8rem"}}>{cell||"—"}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+    </Shell>
+  );
+}
+
+function StaffPortal({user,onLogout}) {
+  const [page,setPage]=useState("dashboard");
+  const [docs,setDocs]=useState(INIT_DOCS);
+  const [notif,setNotif]=useState(null);
+  function showNotif(m){setNotif(m);setTimeout(()=>setNotif(null),3000);}
+  const nav=[
+    {id:"dashboard",label:"Tableau de bord",icon:"🏠"},
+    {id:"news",     label:"Actualités",      icon:"📰"},
+    {id:"rooms",    label:"Réservation salles",icon:"🏫"},
+    {id:"purchase", label:"Demandes d'achat", icon:"🛒"},
+    {id:"services", label:"Services campus",  icon:"🏛️"},
+    {id:"documents",label:"Documents",        icon:"📚"},
+  ];
+  return (
+    <Shell user={user} onLogout={onLogout} nav={nav} page={page} setPage={setPage} notif={notif}>
+      {page==="dashboard"&&(
+        <div>
+          <div style={{background:`linear-gradient(135deg,${C.navyDark},${C.navy})`,borderRadius:16,padding:"26px 30px",marginBottom:22,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 8px 32px rgba(27,58,107,0.25)",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",right:-30,top:-30,width:160,height:160,borderRadius:"50%",background:"rgba(245,158,11,0.15)"}}/>
+            <div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.82rem",marginBottom:5}}>Portail Personnel 👨‍💼</div>
+              <h2 style={{color:"white",margin:"0 0 3px",fontSize:"1.35rem",fontWeight:800}}>Bonjour, {user.name} !</h2>
+              <div style={{color:C.amber,fontSize:"0.8rem",fontWeight:600}}>{user.extra}</div>
+              <div style={{color:"rgba(255,255,255,0.4)",fontSize:"0.72rem",marginTop:3}}>{user.id}</div>
+            </div>
+            <LogoMark size={68}/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
+            {[{l:"Salles réservées",v:2,i:"🏫",c:C.teal},{l:"Demandes achat",v:4,i:"🛒",c:C.amber},{l:"En attente",v:2,i:"⏳",c:C.red},{l:"Documents",v:docs.length,i:"📁",c:C.purple}].map((s,i)=>(
+              <Card key={i} style={{borderTop:`4px solid ${s.c}`}}>
+                <div style={{fontSize:"1.6rem",marginBottom:6}}>{s.i}</div>
+                <div style={{fontSize:"1.4rem",fontWeight:800,color:s.c}}>{s.v}</div>
+                <div style={{fontSize:"0.75rem",color:C.gray400,fontWeight:600}}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+            <Card><STitle>📰 Actualités récentes</STitle>{NEWS.slice(0,3).map(n=>(
+              <div key={n.id} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.gray100}`}}>
+                <span style={{fontSize:"1.1rem"}}>{n.icon}</span>
+                <div><div style={{fontWeight:700,fontSize:"0.83rem"}}>{n.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{n.date}</div></div>
+              </div>))}
+            </Card>
+            <Card><STitle>⚡ Accès rapides</STitle>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {[{icon:"🏫",label:"Réserver une salle",fn:()=>setPage("rooms")},{icon:"🛒",label:"Nouvelle demande d'achat",fn:()=>setPage("purchase")},{icon:"🏛️",label:"Services campus",fn:()=>setPage("services")},{icon:"📚",label:"Ajouter un document",fn:()=>setPage("documents")}].map((a,i)=>(
+                  <button key={i} onClick={a.fn} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:C.offWhite,border:`1px solid ${C.gray200}`,borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:"0.83rem",fontWeight:700,color:C.navy,transition:"all 0.15s",textAlign:"left"}}
+                    onMouseEnter={e=>{e.currentTarget.style.background=C.navy;e.currentTarget.style.color="white";}} onMouseLeave={e=>{e.currentTarget.style.background=C.offWhite;e.currentTarget.style.color=C.navy;}}>
+                    <span style={{fontSize:"1.1rem"}}>{a.icon}</span>{a.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+      {page==="news"&&<div><h2 style={{margin:"0 0 18px",color:C.navy,fontWeight:800}}>📰 Actualités UEMF</h2><NewsFeed/></div>}
+      {page==="rooms"&&<RoomsModule showNotif={showNotif}/>}
+      {page==="purchase"&&<PurchaseModule showNotif={showNotif}/>}
+      {page==="services"&&<ServicesModule showNotif={showNotif} setPage={setPage}/>}
+      {page==="documents"&&<DocsModule docs={docs} setDocs={setDocs} showNotif={showNotif} canAdd={true}/>}
+    </Shell>
+  );
+}
+
+function AdminPortal({user,onLogout}) {
+  const [page,setPage]=useState("dashboard");
+  const [docs,setDocs]=useState(INIT_DOCS);
+  const [notif,setNotif]=useState(null);
+  function showNotif(m){setNotif(m);setTimeout(()=>setNotif(null),3000);}
+  const nav=[
+    {id:"dashboard",label:"Tableau de bord", icon:"🏠"},
+    {id:"news",     label:"Actualités",       icon:"📰"},
+    {id:"admin",    label:"Administration",   icon:"⚙️"},
+    {id:"rooms",    label:"Réservations",     icon:"🏫"},
+    {id:"purchase", label:"Achats",           icon:"🛒"},
+    {id:"documents",label:"Documents",        icon:"📚"},
+  ];
+  const totalUsers=1348;
+  return (
+    <Shell user={user} onLogout={onLogout} nav={nav} page={page} setPage={setPage} notif={notif}>
+      {page==="dashboard"&&(
+        <div>
+          <div style={{background:`linear-gradient(135deg,${C.navyDark},${C.navy})`,borderRadius:16,padding:"26px 30px",marginBottom:22,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 8px 32px rgba(27,58,107,0.25)",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",right:-30,top:-30,width:160,height:160,borderRadius:"50%",background:"rgba(239,68,68,0.15)"}}/>
+            <div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.82rem",marginBottom:5}}>Administration Centrale 👩‍💻</div>
+              <h2 style={{color:"white",margin:"0 0 3px",fontSize:"1.35rem",fontWeight:800}}>Bonjour, {user.name} !</h2>
+              <div style={{color:C.red,fontSize:"0.8rem",fontWeight:600}}>{user.extra} · {user.id}</div>
+            </div>
+            <LogoMark size={68}/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:22}}>
+            {[{l:"Utilisateurs",v:totalUsers,i:"👥",c:C.navy},{l:"Étudiants",v:1247,i:"👩‍🎓",c:C.green},{l:"Personnel",v:89,i:"👨‍💼",c:C.amber},{l:"Documents",v:docs.length,i:"📁",c:C.purple},{l:"Achats en attente",v:2,i:"🛒",c:C.red}].map((s,i)=>(
+              <Card key={i} style={{borderTop:`4px solid ${s.c}`,padding:16}}>
+                <div style={{fontSize:"1.5rem",marginBottom:5}}>{s.i}</div>
+                <div style={{fontSize:"1.3rem",fontWeight:800,color:s.c}}>{s.v}</div>
+                <div style={{fontSize:"0.72rem",color:C.gray400,fontWeight:600}}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+            <Card><STitle>📰 Actualités publiées</STitle>{NEWS.slice(0,3).map(n=>(
+              <div key={n.id} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"center"}}>
+                <span style={{fontSize:"1.1rem"}}>{n.icon}</span>
+                <div style={{flex:1}}><div style={{fontWeight:700,fontSize:"0.83rem"}}>{n.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{n.date}</div></div>
+                <button onClick={()=>showNotif("Article modifié !")} style={{background:"none",border:`1px solid ${C.gray200}`,borderRadius:6,padding:"3px 8px",fontSize:"0.7rem",cursor:"pointer",fontFamily:"inherit"}}>✏️</button>
+              </div>))}
+              <button onClick={()=>setPage("admin")} style={{marginTop:12,background:"none",border:`1px solid ${C.navy}`,color:C.navy,padding:"6px 14px",borderRadius:8,fontSize:"0.78rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Gérer →</button>
+            </Card>
+            <Card><STitle>⚡ Actions rapides admin</STitle>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {[{icon:"👥",label:"Gérer les utilisateurs",fn:()=>setPage("admin")},{icon:"🛒",label:"Valider les achats",fn:()=>setPage("purchase")},{icon:"📰",label:"Publier une actualité",fn:()=>showNotif("Éditeur ouvert !")},{icon:"📈",label:"Voir les statistiques",fn:()=>setPage("admin")},{icon:"📚",label:"Gérer les documents",fn:()=>setPage("documents")}].map((a,i)=>(
+                  <button key={i} onClick={a.fn} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 13px",background:C.offWhite,border:`1px solid ${C.gray200}`,borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:700,color:C.navy,transition:"all 0.15s",textAlign:"left"}}
+                    onMouseEnter={e=>{e.currentTarget.style.background=C.navy;e.currentTarget.style.color="white";}} onMouseLeave={e=>{e.currentTarget.style.background=C.offWhite;e.currentTarget.style.color=C.navy;}}>
+                    <span style={{fontSize:"1.05rem"}}>{a.icon}</span>{a.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+      {page==="news"&&<div><h2 style={{margin:"0 0 18px",color:C.navy,fontWeight:800}}>📰 Actualités UEMF</h2><NewsFeed/></div>}
+      {page==="admin"&&<AdminPanel showNotif={showNotif}/>}
+      {page==="rooms"&&<RoomsModule showNotif={showNotif}/>}
+      {page==="purchase"&&<PurchaseModule showNotif={showNotif}/>}
+      {page==="documents"&&<DocsModule docs={docs} setDocs={setDocs} showNotif={showNotif} canAdd={true}/>}
+    </Shell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RICHARD FOUCHÉ PORTAL (Direction Générale)
+// ─────────────────────────────────────────────────────────────────────────────
+function RFStaffPortal({user,onLogout}) {
+  const [page,setPage]=useState("dashboard");
+  const [docs,setDocs]=useState(INIT_DOCS);
+  const [notif,setNotif]=useState(null);
+  function showNotif(m){setNotif(m);setTimeout(()=>setNotif(null),3000);}
+
+  const nav=[
+    {id:"dashboard",label:"Tableau de bord",   icon:"🏠"},
+    {id:"news",     label:"Actualités",         icon:"📰"},
+    {id:"rooms",    label:"Réservation salles", icon:"🏫"},
+    {id:"purchase", label:"Demandes d'achat",   icon:"🛒"},
+    {id:"services", label:"Services campus",    icon:"🏛️"},
+    {id:"documents",label:"Documents",          icon:"📚"},
+    {id:"agenda",   label:"Mon agenda",         icon:"📅"},
+  ];
+
+  const AGENDA = [
+    {id:1,heure:"09:00",titre:"Réunion Conseil de Direction",lieu:"Salle D01",duree:"2h",color:C.navy},
+    {id:2,heure:"11:30",titre:"Point avec DSI — Projet numérique",lieu:"Salle B205",duree:"1h",color:C.teal},
+    {id:3,heure:"14:00",titre:"Comité pédagogique UEMF",lieu:"Amphi A101",duree:"2h30",color:C.green},
+    {id:4,heure:"16:30",titre:"Appel Partenaires Erasmus+",lieu:"Visioconférence",duree:"1h",color:C.purple},
+  ];
+
+  return (
+    <Shell user={user} onLogout={onLogout} nav={nav} page={page} setPage={setPage} notif={notif}>
+
+      {/* DASHBOARD */}
+      {page==="dashboard"&&(
+        <div>
+          <div style={{background:`linear-gradient(135deg,${C.navyDark},${C.navy})`,borderRadius:16,padding:"26px 30px",marginBottom:22,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 8px 32px rgba(27,58,107,0.25)",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",right:-30,top:-30,width:160,height:160,borderRadius:"50%",background:"rgba(13,148,136,0.18)"}}/>
+            <div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.82rem",marginBottom:5}}>Direction Générale 🧭</div>
+              <h2 style={{color:"white",margin:"0 0 3px",fontSize:"1.35rem",fontWeight:800}}>Bonjour, {user.name} !</h2>
+              <div style={{color:C.teal,fontSize:"0.8rem",fontWeight:600}}>{user.extra} · {user.id}</div>
+            </div>
+            <LogoMark size={68}/>
+          </div>
+
+          {/* Quick stats */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:22}}>
+            {[
+              {l:"RDV aujourd'hui",v:AGENDA.length,i:"📅",c:C.teal},
+              {l:"Salles réservées",v:2,i:"🏫",c:C.navy},
+              {l:"Demandes d'achat",v:4,i:"🛒",c:C.amber},
+              {l:"Documents",v:docs.length,i:"📁",c:C.purple},
+            ].map((s,i)=>(
+              <Card key={i} style={{borderTop:`4px solid ${s.c}`}}>
+                <div style={{fontSize:"1.6rem",marginBottom:6}}>{s.i}</div>
+                <div style={{fontSize:"1.4rem",fontWeight:800,color:s.c}}>{s.v}</div>
+                <div style={{fontSize:"0.75rem",color:C.gray400,fontWeight:600}}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1.1fr 1fr",gap:18}}>
+            {/* Agenda du jour */}
+            <Card>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+                <STitle>📅 Agenda du jour</STitle>
+                <Btn small outline color={C.teal} onClick={()=>setPage("agenda")}>Voir tout →</Btn>
+              </div>
+              {AGENDA.map(a=>(
+                <div key={a.id} style={{display:"flex",gap:12,padding:"10px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"center"}}>
+                  <div style={{width:44,height:44,borderRadius:10,background:a.color,display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:"0.78rem",fontWeight:800,flexShrink:0,lineHeight:1.2,textAlign:"center"}}>
+                    {a.heure}
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:"0.86rem",color:C.text}}>{a.titre}</div>
+                    <div style={{fontSize:"0.72rem",color:C.gray400}}>📍 {a.lieu} · ⏱️ {a.duree}</div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+
+            {/* Actualités + accès rapides */}
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <Card>
+                <STitle>📰 Actualités UEMF</STitle>
+                {NEWS.slice(0,3).map(n=>(
+                  <div key={n.id} style={{display:"flex",gap:9,padding:"7px 0",borderBottom:`1px solid ${C.gray100}`}}>
+                    <span style={{fontSize:"1.05rem"}}>{n.icon}</span>
+                    <div><div style={{fontWeight:700,fontSize:"0.82rem"}}>{n.title}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>{n.date}</div></div>
+                  </div>
+                ))}
+                <button onClick={()=>setPage("news")} style={{marginTop:10,background:"none",border:`1px solid ${C.navy}`,color:C.navy,padding:"5px 12px",borderRadius:7,fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>Voir tout →</button>
+              </Card>
+              <Card>
+                <STitle>⚡ Accès rapides</STitle>
+                <div style={{display:"flex",flexDirection:"column",gap:7}}>
+                  {[
+                    {icon:"🏫",label:"Réserver une salle",   fn:()=>setPage("rooms")},
+                    {icon:"🛒",label:"Demande d'achat",      fn:()=>setPage("purchase")},
+                    {icon:"📚",label:"Ajouter un document",  fn:()=>setPage("documents")},
+                    {icon:"🏛️",label:"Services campus",      fn:()=>setPage("services")},
+                  ].map((a,i)=>(
+                    <button key={i} onClick={a.fn} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 12px",background:C.offWhite,border:`1px solid ${C.gray200}`,borderRadius:9,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:700,color:C.navy,transition:"all 0.15s",textAlign:"left"}}
+                      onMouseEnter={e=>{e.currentTarget.style.background=C.navy;e.currentTarget.style.color="white";}} onMouseLeave={e=>{e.currentTarget.style.background=C.offWhite;e.currentTarget.style.color=C.navy;}}>
+                      <span style={{fontSize:"1.05rem"}}>{a.icon}</span>{a.label}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {page==="news"&&<div><h2 style={{margin:"0 0 18px",color:C.navy,fontWeight:800}}>📰 Actualités UEMF</h2><NewsFeed/></div>}
+      {page==="rooms"&&<RoomsModule showNotif={showNotif}/>}
+      {page==="purchase"&&<PurchaseModule showNotif={showNotif}/>}
+      {page==="services"&&<ServicesModule showNotif={showNotif} setPage={setPage}/>}
+      {page==="documents"&&<DocsModule docs={docs} setDocs={setDocs} showNotif={showNotif} canAdd={true}/>}
+
+      {page==="agenda"&&(
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+            <h2 style={{margin:0,color:C.navy,fontWeight:800}}>📅 Mon Agenda</h2>
+            <Btn small color={C.teal} onClick={()=>showNotif("Événement ajouté !")}>+ Ajouter RDV</Btn>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            {["Lundi 26 mai","Mardi 27 mai","Mercredi 28 mai","Jeudi 29 mai"].map((jour,ji)=>(
+              <Card key={ji}>
+                <div style={{fontWeight:800,fontSize:"0.9rem",color:C.navy,marginBottom:14,paddingBottom:10,borderBottom:`2px solid ${C.teal}`}}>{jour}</div>
+                {ji===0
+                  ? AGENDA.map(a=>(
+                    <div key={a.id} style={{display:"flex",gap:11,padding:"9px 0",borderBottom:`1px solid ${C.gray100}`,alignItems:"flex-start"}}>
+                      <div style={{width:52,background:a.color,color:"white",borderRadius:8,padding:"5px 0",textAlign:"center",fontSize:"0.72rem",fontWeight:800,flexShrink:0}}>{a.heure}</div>
+                      <div><div style={{fontWeight:700,fontSize:"0.84rem"}}>{a.titre}</div><div style={{fontSize:"0.7rem",color:C.gray400}}>📍 {a.lieu} · {a.duree}</div></div>
+                    </div>
+                  ))
+                  : <div style={{color:C.gray400,fontSize:"0.82rem",textAlign:"center",padding:"20px 0"}}>
+                      {ji===2
+                        ? <div style={{display:"flex",gap:11,alignItems:"flex-start"}}>
+                            <div style={{width:52,background:C.green,color:"white",borderRadius:8,padding:"5px 0",textAlign:"center",fontSize:"0.72rem",fontWeight:800,flexShrink:0}}>10:00</div>
+                            <div><div style={{fontWeight:700,fontSize:"0.84rem"}}>Forum Carrières UEMF</div><div style={{fontSize:"0.7rem",color:C.gray400}}>📍 Campus principal · 3h</div></div>
+                          </div>
+                        : "Aucun événement"}
+                    </div>
+                }
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </Shell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────────────────────────────────────
+function Login({onLogin}) {
+  const [email,setEmail]=useState("");
+  const [pw,setPw]=useState("");
+  const [err,setErr]=useState("");
+  const [selected,setSelected]=useState(null);
+  const portals=[
+    {role:"student", label:"Portail Étudiant",    icon:"👩‍🎓",email:"etudiant@uemf.ma",       pw:"etudiant2024",color:C.green,bg:"#E8F5E9",desc:"Cours, documents, services campus"},
+    {role:"staff",   label:"Portail Personnel",   icon:"👨‍💼",email:"personnel@uemf.ma",      pw:"staff2024",  color:C.amber,bg:"#FFF8E1",desc:"Réservations, achats, procédures"},
+    {role:"admin",   label:"Administration",      icon:"👩‍💻",email:"admin@uemf.ma",          pw:"uemf2024",   color:C.red,  bg:"#FFEBEE",desc:"Gestion complète & statistiques"},
+  ];
+  function tryLogin(e){
+    e.preventDefault();
+    const u=ACCOUNTS[email];
+    if(u&&u.pw===pw){onLogin(u);}
+    else setErr("Identifiants incorrects.");
+  }
+  function quickLogin(p){setEmail(p.email);setPw(p.pw);setSelected(p.role);}
+  return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${C.navyDark} 0%,${C.navy} 55%,${C.navyLight} 100%)`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Montserrat','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-100,right:-100,width:400,height:400,borderRadius:"50%",background:"rgba(76,175,80,0.1)"}}/>
+      <div style={{position:"absolute",bottom:-80,left:-80,width:300,height:300,borderRadius:"50%",background:"rgba(255,255,255,0.04)"}}/>
+      <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.05) 1px,transparent 1px)",backgroundSize:"28px 28px"}}/>
+      <div style={{width:"100%",maxWidth:460,position:"relative",zIndex:1,padding:"0 16px"}}>
+        <div style={{marginBottom:28,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+          <div style={{background:"white",borderRadius:10,padding:"5px 10px",display:"inline-block"}}>
+            <img src={LOGO_URL} alt="Uboussole" style={{height:140,width:"auto",objectFit:"contain",display:"block"}}/>
+          </div>
+          <p style={{color:"rgba(255,255,255,0.65)",fontSize:"0.9rem",margin:0,fontWeight:600,letterSpacing:"0.04em",textAlign:"center"}}>Portail de la Communauté Euromed de Fès</p>
+        </div>
+        {/* Portal selector */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:22}}>
+          {portals.map(p=>(
+            <button key={p.role} onClick={()=>quickLogin(p)} style={{padding:"14px 8px",borderRadius:12,border:`2px solid ${selected===p.role?p.color:"rgba(255,255,255,0.15)"}`,background:selected===p.role?`rgba(255,255,255,0.15)`:"rgba(255,255,255,0.06)",color:"white",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s",textAlign:"center"}}>
+              <div style={{fontSize:"1.8rem",marginBottom:6}}>{p.icon}</div>
+              <div style={{fontWeight:800,fontSize:"0.78rem",lineHeight:1.3}}>{p.label}</div>
+              <div style={{fontSize:"0.65rem",color:"rgba(255,255,255,0.55)",marginTop:4,lineHeight:1.3}}>{p.desc}</div>
+              {selected===p.role&&<div style={{marginTop:8,background:p.color,borderRadius:6,padding:"2px 0",fontSize:"0.65rem",fontWeight:800}}>✓ Sélectionné</div>}
+            </button>
+          ))}
+        </div>
+        <div style={{background:"white",borderRadius:20,padding:"32px 36px",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}}>
+          <form onSubmit={tryLogin}>
+            <div style={{marginBottom:18}}>
+              <label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:7,letterSpacing:"0.05em",textTransform:"uppercase"}}>Email</label>
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="votre@uemf.ma" required style={{width:"100%",padding:"11px 14px",border:`2px solid ${C.gray200}`,borderRadius:10,fontSize:"0.92rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}} onFocus={e=>e.target.style.borderColor=C.navy} onBlur={e=>e.target.style.borderColor=C.gray200}/>
+            </div>
+            <div style={{marginBottom:24}}>
+              <label style={{display:"block",fontSize:"0.72rem",fontWeight:700,color:C.navy,marginBottom:7,letterSpacing:"0.05em",textTransform:"uppercase"}}>Mot de passe</label>
+              <input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" required style={{width:"100%",padding:"11px 14px",border:`2px solid ${C.gray200}`,borderRadius:10,fontSize:"0.92rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box"}} onFocus={e=>e.target.style.borderColor=C.navy} onBlur={e=>e.target.style.borderColor=C.gray200}/>
+            </div>
+            {err&&<div style={{background:"#FFEBEE",color:"#C62828",padding:"9px 13px",borderRadius:8,fontSize:"0.83rem",marginBottom:18,border:"1px solid #FFCDD2"}}>{err}</div>}
+            <button type="submit" style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${C.navy},${C.navyLight})`,color:"white",border:"none",borderRadius:12,fontSize:"0.95rem",fontWeight:800,fontFamily:"inherit",cursor:"pointer",boxShadow:"0 6px 20px rgba(27,58,107,0.35)",transition:"transform 0.15s"}}
+              onMouseEnter={e=>e.target.style.transform="translateY(-1px)"} onMouseLeave={e=>e.target.style.transform=""}>Se connecter →</button>
+          </form>
+        </div>
+      </div>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box;}`}</style>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT
+// ─────────────────────────────────────────────────────────────────────────────
+function App() {
+  const [user,setUser]=useState(null);
+  if(!user) return <Login onLogin={setUser}/>;
+  const logout=()=>setUser(null);
+  if(user.role==="student") return <StudentPortal user={user} onLogout={logout}/>;
+  if(user.role==="staff")   return <StaffPortal   user={user} onLogout={logout}/>;
+  if(user.role==="rfstaff") return <RFStaffPortal user={user} onLogout={logout}/>;
+  if(user.role==="admin")   return <AdminPortal   user={user} onLogout={logout}/>;
+}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+  </script>
+</body>
+</html>
